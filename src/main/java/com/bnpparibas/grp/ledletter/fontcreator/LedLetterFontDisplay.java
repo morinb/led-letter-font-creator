@@ -1,7 +1,10 @@
 package com.bnpparibas.grp.ledletter.fontcreator;
 
+import com.bnpparibas.grp.ledletter.fontcreator.status.StatusDirtyChangedListener;
+
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import javax.swing.event.EventListenerList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -30,6 +33,20 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
    private int translateY = 0;
    //endregion
 
+   private static final EventListenerList ell = new EventListenerList();
+
+   public void addStatusDirtyChangedListener(StatusDirtyChangedListener l) {
+      ell.add(StatusDirtyChangedListener.class, l);
+   }
+   public void removeStatusDirtyChangedListener(StatusDirtyChangedListener l) {
+      ell.remove(StatusDirtyChangedListener.class, l);
+   }
+
+   public void fireStatusDirtyChanged(boolean dirty) {
+      for (StatusDirtyChangedListener l : ell.getListeners(StatusDirtyChangedListener.class)) {
+         l.dirtyChanged(dirty);
+      }
+   }
 
    private Cell[][] cells;
 
@@ -69,6 +86,7 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
                for (Cell r : rects) {
                   if (r.contains(computedX, computedY)) {
                      r.setSelected(!r.isSelected());
+                     fireStatusDirtyChanged(true);
                      LedLetterFontDisplay.this.repaint();
                      return;
                   }
@@ -248,5 +266,13 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
          }
       }
       return res;
+   }
+   
+   public void setValues(boolean[][] values) {
+      for (int row = 0; row < verticalCellNumber; row++) {
+         for (int col = 0; col < horizontalCellNumber; col++) {
+            cells[row][col].setSelected(values[row][col]);
+         }
+      }
    }
 }

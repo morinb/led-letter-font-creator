@@ -107,6 +107,7 @@ public class DefaultStatusBar extends StatusBar {
    @Override
    public void setDirty(boolean dirty) {
       checkBoxDirty.setSelected(dirty);
+      fireStatusDirtyChanged(dirty);
    }
 
    @Override
