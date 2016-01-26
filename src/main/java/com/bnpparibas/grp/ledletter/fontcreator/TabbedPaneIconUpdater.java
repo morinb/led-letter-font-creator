@@ -1,7 +1,5 @@
 package com.bnpparibas.grp.ledletter.fontcreator;
 
-import com.bnpparibas.grp.ledletter.fontcreator.icons.Icons;
-
 import javax.swing.ImageIcon;
 import javax.swing.JTabbedPane;
 import java.awt.Image;

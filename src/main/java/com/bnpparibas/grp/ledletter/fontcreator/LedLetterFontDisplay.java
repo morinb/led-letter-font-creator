@@ -1,7 +1,6 @@
 package com.bnpparibas.grp.ledletter.fontcreator;
 
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -9,10 +8,6 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 
 /**
