@@ -221,13 +221,7 @@ public class MainFrame extends JFrame {
 
          //region MenuItem New
          file.add(createMenuItem("New", "Creates a new Led Letter Font file.", 'n', "control N", Icons.NEW, (e) -> {
-            if (isDirty()) {
-               if (doesUserWantToSave()) {
-                  // save
-               }
-
-            }
-
+            saveIfDirtyAndCloseAll();
             for (int c : characters) {
 
 
@@ -248,6 +242,8 @@ public class MainFrame extends JFrame {
 
          //region MenuItem Open 
          file.add(createMenuItem("Open", "Opens a Led Letter Font", 'o', "control O", Icons.OPEN, (e) -> {
+            saveIfDirtyAndCloseAll();
+            
             Preferences preferences = Preferences.userRoot().node(getClass().getName());
             final JFileChooser jfc = new JFileChooser(preferences.get(LAST_USED_FOLDER, new File(".").getAbsolutePath()));
             jfc.setFileFilter(LLF_FILE_FILTER);
@@ -265,7 +261,7 @@ public class MainFrame extends JFrame {
          //endregion
 
          //region MenuItem Save
-         final JMenuItem menuItemSave = createMenuItem("Save", "Save the current Led Letter Font", 's', "control S", Icons.SAVE, (e) -> {
+         menuItemSave = createMenuItem("Save", "Save the current Led Letter Font", 's', "control S", Icons.SAVE, (e) -> {
             Preferences preferences = Preferences.userRoot().node(getClass().getName());
             final JFileChooser jfc = new JFileChooser(preferences.get(LAST_USED_FOLDER, new File(".").getAbsolutePath()));
             jfc.setFileFilter(LLF_FILE_FILTER);
@@ -308,11 +304,21 @@ public class MainFrame extends JFrame {
          menuBar.add(help);
 
          help.add(createMenuItem("About", "Display About window", 'a', "control COMMA", Icons.ABOUT, e -> {
-            JOptionPane.showMessageDialog(MainFrame.this, "", "About", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(MainFrame.this, "Allows to create/view/modify Led Letter Fonts", "Led Letter Font Creator", JOptionPane.INFORMATION_MESSAGE);
          }));
       }
       //endregion
       setJMenuBar(menuBar);
+   }
+
+   private void saveIfDirtyAndCloseAll() {
+      if (isDirty()) {
+         if (doesUserWantToSave()) {
+            // save
+         }
+
+      }
+      closeAll();
    }
 
    private LedLetterFontDisplayModel askUserModel() {
@@ -452,6 +458,10 @@ public class MainFrame extends JFrame {
 
    //endregion 
 
+   private void closeAll() {
+      tabbedPane.removeAll();
+   }
+
    private boolean doesUserWantToSave() {
       return false;
    }
@@ -459,7 +469,7 @@ public class MainFrame extends JFrame {
    private boolean isDirty() {
       return statusBar.isDirty();
    }
-   
+
    private class MyLedLetterFontDisplayModelListener implements LedLetterFontDisplayModelListener {
       JScrollPane container;
 

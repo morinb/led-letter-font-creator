@@ -67,7 +67,6 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
             if (newZoom > 16) {
                newZoom = 16;
             }
-            System.out.println("Zoom level : " + newZoom);
             model.setZoomLevel(newZoom);
 
          }
@@ -252,7 +251,6 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
    public void zoomLevelChanged(int oldZoomLevel, int newZoomLevel) {
 
       setPreferredSize(new Dimension(this.gridWidth * newZoomLevel + newZoomLevel * thickness, this.gridHeight * newZoomLevel + newZoomLevel * thickness));
-      System.out.println(getPreferredSize());
       repaint();
    }
    //endregion
