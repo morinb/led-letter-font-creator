@@ -6,11 +6,12 @@ import com.bnpparibas.grp.ledletter.fontcreator.status.StatusBarFactory;
 import com.bnpparibas.grp.ledletter.fontcreator.utils.HexUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.jgoodies.looks.Options;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -30,6 +31,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,6 +42,7 @@ import java.nio.file.Paths;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -70,108 +74,108 @@ public class MainFrame extends JFrame {
    private JMenuItem menuItemAddLetter;
 
    //region character list 
-   private static final List<Integer> ADDED_LETTER_LIST = Lists.newArrayList();
-   private static final List<Integer> DEFAULT_CHARACTERS = Lists.newArrayList(
-         32 /* SPACE */,
-         33 /* ! */,
-         34 /* " */,
-         35 /* # */,
-         36 /* $ */,
-         37 /* % */,
-         38 /* & */,
-         40 /* ( */,
-         41 /*  */,
-         42 /* * */,
-         43 /* + */,
-         44 /* , */,
-         45 /* - */,
-         46 /* . */,
-         47 /*  / */,
-         48 /* 0 */,
-         49 /* 1 */,
-         50 /* 2 */,
-         51 /* 3 */,
-         52 /* 4 */,
-         53 /* 5 */,
-         54 /* 6 */,
-         55 /* 7 */,
-         56 /* 8 */,
-         57 /* 9 */,
-         58 /* : */,
-         59 /* ; */,
-         60 /* < */,
-         61 /* = */,
-         62 /* > */,
-         63 /* ? */,
-         64 /* @ */,
-         65 /* A */,
-         66 /* B */,
-         67 /* C */,
-         68 /* D */,
-         69 /* E */,
-         70 /* F */,
-         71 /* G */,
-         72 /* H */,
-         73 /* I */,
-         74 /* J */,
-         75 /* K */,
-         76 /* L */,
-         77 /* M */,
-         78 /* N */,
-         79 /* O */,
-         80 /* P */,
-         81 /* Q */,
-         82 /* R */,
-         83 /* S */,
-         84 /* T */,
-         85 /* U */,
-         86 /* V */,
-         87 /* W */,
-         88 /* X */,
-         89 /* Y */,
-         90 /* Z */,
-         91 /* [ */,
-         92 /* \ */,
-         93 /* ] */,
-         95 /* _ */,
-         97 /* a */,
-         98 /* b */,
-         99 /* c */,
-         100 /* d */,
-         101 /* e */,
-         102 /* f */,
-         103 /* g */,
-         104 /* h */,
-         105 /* i */,
-         106 /* j */,
-         107 /* k */,
-         108 /* l */,
-         109 /* m */,
-         110 /* n */,
-         111 /* o */,
-         112 /* p */,
-         113 /* q */,
-         114 /* r */,
-         115 /* s */,
-         116 /* t */,
-         117 /* u */,
-         118 /* v */,
-         119 /* w */,
-         120 /* x */,
-         121 /* y */,
-         122 /* z */,
-         123 /* { */,
-         125 /* } */,
-         161 /* &iexcl; */,
-         186 /* &ordm; */,
-         191 /* &iquest; */,
-         209 /* &Ntilde; */,
-         241 /* &ntilde; */);
+   private static final List<Character> ADDED_LETTER_LIST = Lists.newArrayList();
+   private static final List<Character> DEFAULT_CHARACTERS = Lists.newArrayList(
+         (char) 32 /* SPACE */,
+         (char) 33 /* ! */,
+         (char) 34 /* " */,
+         (char) 35 /* # */,
+         (char) 36 /* $ */,
+         (char) 37 /* % */,
+         (char) 38 /* & */,
+         (char) 40 /* ( */,
+         (char) 41 /*  */,
+         (char) 42 /* * */,
+         (char) 43 /* + */,
+         (char) 44 /* , */,
+         (char) 45 /* - */,
+         (char) 46 /* . */,
+         (char) 47 /*  / */,
+         (char) 48 /* 0 */,
+         (char) 49 /* 1 */,
+         (char) 50 /* 2 */,
+         (char) 51 /* 3 */,
+         (char) 52 /* 4 */,
+         (char) 53 /* 5 */,
+         (char) 54 /* 6 */,
+         (char) 55 /* 7 */,
+         (char) 56 /* 8 */,
+         (char) 57 /* 9 */,
+         (char) 58 /* : */,
+         (char) 59 /* ; */,
+         (char) 60 /* < */,
+         (char) 61 /* = */,
+         (char) 62 /* > */,
+         (char) 63 /* ? */,
+         (char) 64 /* @ */,
+         (char) 65 /* A */,
+         (char) 66 /* B */,
+         (char) 67 /* C */,
+         (char) 68 /* D */,
+         (char) 69 /* E */,
+         (char) 70 /* F */,
+         (char) 71 /* G */,
+         (char) 72 /* H */,
+         (char) 73 /* I */,
+         (char) 74 /* J */,
+         (char) 75 /* K */,
+         (char) 76 /* L */,
+         (char) 77 /* M */,
+         (char) 78 /* N */,
+         (char) 79 /* O */,
+         (char) 80 /* P */,
+         (char) 81 /* Q */,
+         (char) 82 /* R */,
+         (char) 83 /* S */,
+         (char) 84 /* T */,
+         (char) 85 /* U */,
+         (char) 86 /* V */,
+         (char) 87 /* W */,
+         (char) 88 /* X */,
+         (char) 89 /* Y */,
+         (char) 90 /* Z */,
+         (char) 91 /* [ */,
+         (char) 92 /* \ */,
+         (char) 93 /* ] */,
+         (char) 95 /* _ */,
+         (char) 97 /* a */,
+         (char) 98 /* b */,
+         (char) 99 /* c */,
+         (char) 100 /* d */,
+         (char) 101 /* e */,
+         (char) 102 /* f */,
+         (char) 103 /* g */,
+         (char) 104 /* h */,
+         (char) 105 /* i */,
+         (char) 106 /* j */,
+         (char) 107 /* k */,
+         (char) 108 /* l */,
+         (char) 109 /* m */,
+         (char) 110 /* n */,
+         (char) 111 /* o */,
+         (char) 112 /* p */,
+         (char) 113 /* q */,
+         (char) 114 /* r */,
+         (char) 115 /* s */,
+         (char) 116 /* t */,
+         (char) 117 /* u */,
+         (char) 118 /* v */,
+         (char) 119 /* w */,
+         (char) 120 /* x */,
+         (char) 121 /* y */,
+         (char) 122 /* z */,
+         (char) 123 /* { */,
+         (char) 125 /* } */,
+         (char) 161 /* &iexcl; */,
+         (char) 186 /* &ordm; */,
+         (char) 191 /* &iquest; */,
+         (char) 209 /* &Ntilde; */,
+         (char) 241 /* &ntilde; */);
    //endregion
 
    private LedLetterFontDisplayModel selectedModel;
 
-   private Map<Integer, LedLetterFontDisplay> displaysMap = Maps.newHashMap();
+   private Map<Character, LedLetterFontDisplay> displaysMap = Maps.newHashMap();
    private final StatusBar statusBar;
    private int nbCol;
    private int nbRow;
@@ -182,18 +186,30 @@ public class MainFrame extends JFrame {
       statusBar = StatusBarFactory.getDefaultStatusBar();
 
       statusBar.addStatusDirtyChangedListener(isDirty -> menuItemSave.setEnabled(isDirty));
-      tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
+      tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
       this.setLayout(new BorderLayout());
       this.add(tabbedPane, BorderLayout.CENTER);
 
       this.add(statusBar, BorderLayout.SOUTH);
       statusBar.setMessageFor("Application Launched", 3, TimeUnit.SECONDS);
+
+
+      this.addWindowListener(new WindowAdapter() {
+         @Override
+         public void windowClosing(WindowEvent e) {
+            Boolean res = saveIfDirtyAndCloseAll();
+            if(res != null) {
+               System.exit(0);
+            }
+
+         }
+      });
    }
 
    public static void main(String[] args) {
 
       try {
-         UIManager.setLookAndFeel(Options.PLASTIC3D_NAME);
+         UIManager.setLookAndFeel("net.infonode.gui.laf.InfoNodeLookAndFeel");
       } catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException e) {
          e.printStackTrace();
       }
@@ -203,7 +219,7 @@ public class MainFrame extends JFrame {
          mf.setIconImage(Icons.FONTS.getImage());
          mf.setSize(800, 600);
          mf.setLocationRelativeTo(null);
-         mf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+         mf.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
          mf.setVisible(true);
 
       });
@@ -260,14 +276,16 @@ public class MainFrame extends JFrame {
          //endregion
 
          //region MenuItem CLose All 
-         file.add(createMenuItem("Close All", "Close all opened letters", 'C', "control shift W", Icons.CLOSE, e -> closeAll()));
+         file.add(createMenuItem("Close All", "Close all opened letters", 'C', "control shift W", Icons.CLOSE, e -> saveIfDirtyAndCloseAll()));
          //endregion
 
          //region MenuItem Exit
          file.addSeparator();
          file.add(createMenuItem("Exit", "Exits the application", 'x', "control Q", Icons.EXIT, (e -> {
-            saveIfDirtyAndCloseAll();
-            System.exit(0);
+            Boolean res = saveIfDirtyAndCloseAll();
+            if(res != null) {
+               System.exit(0);
+            }
 
          })));
          //endregion
@@ -284,7 +302,7 @@ public class MainFrame extends JFrame {
          //region MenuItem Add Letter
 
          menuItemAddLetter = createMenuItem("Add Letter", "Add a new letter to the list", 'A', "control INSERT", Icons.ADD, e -> {
-            List<Integer> allLetters = Lists.newArrayList();
+            Set<Character> allLetters = Sets.newLinkedHashSet();
             allLetters.addAll(DEFAULT_CHARACTERS);
             allLetters.addAll(ADDED_LETTER_LIST);
 
@@ -293,7 +311,7 @@ public class MainFrame extends JFrame {
             dialog.setLocationRelativeTo(MainFrame.this);
             dialog.setVisible(true);
 
-            int selectedLetter = dialog.getSelectedLetter();
+            char selectedLetter = dialog.getSelectedLetter();
             addLetterTab(selectedLetter, false);
          });
          menuItemAddLetter.setEnabled(false);
@@ -303,6 +321,27 @@ public class MainFrame extends JFrame {
       }
       //endregion
 
+      //region 
+      {
+         final JMenu options = new JMenu("Options");
+         options.setMnemonic('O');
+         menuBar.add(options);
+
+         options.add(createCheckboxMenuItem("Change Tab Layout", "Switch tab layout policy", 'T', "control shift T", Icons.TABS, e -> {
+            JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
+            final int layout;
+            if (item.isSelected()) {
+               layout = JTabbedPane.WRAP_TAB_LAYOUT;
+            } else {
+               layout = JTabbedPane.SCROLL_TAB_LAYOUT;
+            }
+            tabbedPane.setTabLayoutPolicy(layout);
+            tabbedPane.revalidate();
+         }));
+
+      }
+
+      //endregion
 
       //region Menu Help
       {
@@ -333,11 +372,11 @@ public class MainFrame extends JFrame {
       }
    }
 
-   private void addLetterTab(int c) {
+   private void addLetterTab(char c) {
       addLetterTab(c, true);
    }
 
-   private void addLetterTab(int c, boolean defaultLetter) {
+   private void addLetterTab(char c, boolean defaultLetter) {
       LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(c, selectedModel);
       final TabbedPaneIconUpdater updater = new TabbedPaneIconUpdater(tabbedPane, c, tabbedPane.getTabCount());
       fontDisplay.addLedLetterChangedListener(updater);
@@ -345,21 +384,26 @@ public class MainFrame extends JFrame {
       scrollPaneFontDisplay.getViewport().add(fontDisplay);
       selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
       displaysMap.put(c, fontDisplay);
-      tabbedPane.addTab(String.format("%s (%d)", (char) c, c), scrollPaneFontDisplay);
+      tabbedPane.addTab(String.format("%s (%d)", c, (int) c), scrollPaneFontDisplay);
       if (!defaultLetter) {
          ADDED_LETTER_LIST.add(c);
       }
-      
+
    }
 
-   private void saveIfDirtyAndCloseAll() {
+   private Boolean saveIfDirtyAndCloseAll() {
+      Boolean save = true;
       if (isDirty()) {
-         if (doesUserWantToSave()) {
+         save = doesUserWantToSave();
+         if (save == null) {
+            return null; // user cancelled
+         }
+         if (save) {
             save();
          }
-
       }
       closeAll();
+      return save;
    }
 
    private LedLetterFontDisplayModel askUserModel() {
@@ -393,7 +437,7 @@ public class MainFrame extends JFrame {
                final Matcher matcher = FONT_FORMAT_LINES_PATTERN.matcher(line);
                if (matcher.matches()) {
                   final String encodedData = matcher.group(1);
-                  final int charValue = Integer.parseInt(matcher.group(2));
+                  final char charValue = (char) Integer.parseInt(matcher.group(2));
 
                   boolean[][] v = new boolean[nbRow][nbCol];
                   for (int j = 0; j < nbBytes * nbCol; j += nbBytes) {
@@ -418,7 +462,7 @@ public class MainFrame extends JFrame {
                   selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
 
                   displaysMap.put(charValue, fontDisplay);
-                  tabbedPane.addTab(String.format("%s (%d)", (char) charValue, charValue), scrollPaneFontDisplay);
+                  tabbedPane.addTab(String.format("%s (%d)", charValue, (int) charValue), scrollPaneFontDisplay);
                   fontDisplay.fireNewlyCreated();
 
                }
@@ -449,7 +493,7 @@ public class MainFrame extends JFrame {
       PrintWriter pw = new PrintWriter(selectedFile);
 
       pw.write(String.format(HEADER, nbCol, nbRow, nbBytes));
-      List<Integer> allLetters = Lists.newArrayList();
+      List<Character> allLetters = Lists.newArrayList();
       allLetters.addAll(DEFAULT_CHARACTERS);
       allLetters.addAll(ADDED_LETTER_LIST);
       for (int c : allLetters) {
@@ -511,15 +555,52 @@ public class MainFrame extends JFrame {
       return menuItem;
    }
 
+   private JCheckBoxMenuItem createCheckboxMenuItem(String name, String howerText, char mnemonic, String accelerator, Icon icon, ActionListener listener) {
+      JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(name);
+      menuItem.addActionListener(listener);
+      menuItem.setAccelerator(KeyStroke.getKeyStroke(accelerator));
+      menuItem.setMnemonic(mnemonic);
+      menuItem.addMouseListener(new MouseAdapter() {
+         @Override
+         public void mouseEntered(MouseEvent e) {
+            statusBar.setMessageFor(howerText, 3, TimeUnit.SECONDS);
+         }
+
+         @Override
+         public void mouseExited(MouseEvent e) {
+            statusBar.clearMessage();
+         }
+      });
+      if (icon != null) {
+         menuItem.setIcon(icon);
+      }
+
+      return menuItem;
+   }
+
    //endregion 
 
    private void closeAll() {
-      tabbedPane.removeAll();
+      while (tabbedPane.getTabCount() > 0) {
+         tabbedPane.removeTabAt(0);
+      }
+      tabbedPane.revalidate();
       menuItemAddLetter.setEnabled(false);
+      statusBar.setDirty(false);
    }
 
-   private boolean doesUserWantToSave() {
-      return JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "You have pending changes\nDo you want to save ?", "You have pending changes !", JOptionPane.YES_NO_OPTION);
+   private Boolean doesUserWantToSave() {
+      final int result = JOptionPane.showConfirmDialog(this, "You have pending changes\nDo you want to save ?", "You have pending changes !", JOptionPane.YES_NO_CANCEL_OPTION);
+      switch (result) {
+         case JOptionPane.YES_OPTION:
+            return true;
+         case JOptionPane.NO_OPTION:
+            return false;
+         case JOptionPane.CANCEL_OPTION:
+         default:
+            return null;
+      }
+
    }
 
    private boolean isDirty() {

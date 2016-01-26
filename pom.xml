@@ -41,6 +41,7 @@
         <maven-source-plugin.version>2.1.2</maven-source-plugin.version>
 
         <commons-lang.version>2.6</commons-lang.version>
+        <idw-gpl.version>1.6.1</idw-gpl.version>
     </properties>
 
     <build>
@@ -148,14 +149,20 @@
             <version>${jgoodies-forms.version}</version>
         </dependency>
 
-
-
+        <dependency>
+            <groupId>net.infonode</groupId>
+        <artifactId>idw-gpl</artifactId>
+            <version>${idw-gpl.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        
+        
 
         <dependency>
             <groupId>commons-lang</groupId>

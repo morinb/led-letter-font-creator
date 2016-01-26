@@ -16,6 +16,7 @@ public final class Icons {
    public static final ImageIcon CLOSE = resize(16, 16, new ImageIcon(Icons.class.getResource("/images/close.png")));
    public static final ImageIcon OPEN = new ImageIcon(Icons.class.getResource("/images/open.png"));
    public static final ImageIcon FONTS = new ImageIcon(Icons.class.getResource("/images/fonts.png"));
+   public static final ImageIcon TABS = new ImageIcon(Icons.class.getResource("/images/tablayout.png"));
 
    public static ImageIcon resize(int width, int height, ImageIcon imageIcon) {
       if (width == imageIcon.getIconWidth() && imageIcon.getIconHeight() == height) {
