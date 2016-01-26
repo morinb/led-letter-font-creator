@@ -10,13 +10,13 @@ import com.google.common.collect.Sets;
 import net.infonode.tabbedpanel.TabDropDownListVisiblePolicy;
 import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.tabbedpanel.TabbedPanel;
+import net.infonode.tabbedpanel.theme.GradientTheme;
 import net.infonode.tabbedpanel.titledtab.TitledTab;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -73,8 +73,8 @@ public class MainFrame extends JFrame {
       }
    };
    public static final String HEADER = "w:%d,h:%d,b:%d\n";
-   //private JTabbedPane tabbedPane = new JTabbedPane();
    private TabbedPanel tabbedPane = new TabbedPanel();
+   private GradientTheme gradientTheme = new GradientTheme(true, true);
 
    private JMenuItem menuItemSave;
    private JMenuItem menuItemAddLetter;
@@ -194,9 +194,11 @@ public class MainFrame extends JFrame {
       statusBar.addStatusDirtyChangedListener(isDirty -> menuItemSave.setEnabled(isDirty));
       //   tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
+
       tabbedPane.getProperties()
             .setTabLayoutPolicy(TabLayoutPolicy.SCROLLING)
             .setTabDropDownListVisiblePolicy(TabDropDownListVisiblePolicy.MORE_THAN_ONE_TAB)
+            .addSuperObject(gradientTheme.getTabbedPanelProperties())
       ;
 
       this.setLayout(new BorderLayout());
@@ -323,8 +325,10 @@ public class MainFrame extends JFrame {
             dialog.setLocationRelativeTo(MainFrame.this);
             dialog.setVisible(true);
 
-            char selectedLetter = dialog.getSelectedLetter();
-            addLetterTab(selectedLetter, false);
+            Character selectedLetter = dialog.getSelectedLetter();
+            if (selectedLetter != null) {
+               addLetterTab(selectedLetter, false);
+            }
          });
          menuItemAddLetter.setEnabled(false);
          edit.add(menuItemAddLetter);
@@ -399,6 +403,7 @@ public class MainFrame extends JFrame {
       selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
       displaysMap.put(c, fontDisplay);
       TitledTab tt = new TitledTab(String.format("%s (%d)", c, (int) c), new ImageIcon(), scrollPaneFontDisplay, null);
+      tt.getProperties().addSuperObject(gradientTheme.getTitledTabProperties());
       tabbedPane.addTab(tt);
 
       if (!defaultLetter) {
@@ -479,6 +484,7 @@ public class MainFrame extends JFrame {
 
                   displaysMap.put(charValue, fontDisplay);
                   TitledTab tt = new TitledTab(String.format("%s (%d)", charValue, (int) charValue), new ImageIcon(), scrollPaneFontDisplay, null);
+                  tt.getProperties().addSuperObject(gradientTheme.getTitledTabProperties());
                   tabbedPane.addTab(tt);
                   fontDisplay.fireNewlyCreated();
 
@@ -518,7 +524,7 @@ public class MainFrame extends JFrame {
 
          final boolean[][] values = fd.getValues();
 
-         pw.write(String.format("_%d(\"", (int)c));
+         pw.write(String.format("_%d(\"", (int) c));
          for (int j = 0; j < nbBytes * nbCol; j += nbBytes) {
             for (int b = 0; b < nbBytes; b++) {
                BitSet bs = new BitSet();
@@ -530,7 +536,7 @@ public class MainFrame extends JFrame {
                pw.write(bitSetToHexa(bs) + " ");
             }
          }
-         pw.write(String.format("\", %d) /* %s */,\n", (int)c, c));
+         pw.write(String.format("\", %d) /* %s */,\n", (int) c, c));
       }
       pw.close();
    }

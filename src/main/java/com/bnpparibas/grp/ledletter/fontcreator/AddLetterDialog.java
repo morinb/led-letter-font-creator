@@ -21,7 +21,7 @@ import java.util.Set;
  * @author morinb.
  */
 public class AddLetterDialog extends JDialog {
-   private char selectedLetter;
+   private Character selectedLetter = null;
 
    private static final Set<Character> ASCII_8BIT_LETTERS = Sets.newLinkedHashSet();
 
@@ -71,7 +71,7 @@ public class AddLetterDialog extends JDialog {
       this.add(pb.build(), BorderLayout.CENTER);
    }
 
-   public char getSelectedLetter() {
+   public Character getSelectedLetter() {
       return selectedLetter;
    }
 }
