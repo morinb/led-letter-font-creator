@@ -254,22 +254,7 @@ public class MainFrame extends JFrame {
          //endregion
 
          //region MenuItem Save
-         menuItemSave = createMenuItem("Save", "Save the current Led Letter Font", 's', "control S", Icons.SAVE, (e) -> {
-            Preferences preferences = Preferences.userRoot().node(getClass().getName());
-            final JFileChooser jfc = new JFileChooser(preferences.get(LAST_USED_FOLDER, new File(".").getAbsolutePath()));
-            jfc.setFileFilter(LLF_FILE_FILTER);
-            if (JFileChooser.APPROVE_OPTION == jfc.showSaveDialog(MainFrame.this)) {
-               preferences.put(LAST_USED_FOLDER, jfc.getSelectedFile().getParent());
-               try {
-                  saveLedLetterFont(jfc.getSelectedFile());
-                  statusBar.setDirty(false);
-               } catch (FileNotFoundException e1) {
-                  e1.printStackTrace();
-                  statusBar.setMessageFor(e1.getMessage(), 10, TimeUnit.SECONDS);
-               }
-            }
-
-         });
+         menuItemSave = createMenuItem("Save", "Save the current Led Letter Font", 's', "control S", Icons.SAVE, (e) -> save());
          menuItemSave.setEnabled(false);
          file.add(menuItemSave);
          //endregion
@@ -281,11 +266,7 @@ public class MainFrame extends JFrame {
          //region MenuItem Exit
          file.addSeparator();
          file.add(createMenuItem("Exit", "Exits the application", 'x', "control Q", Icons.EXIT, (e -> {
-            if (isDirty()) {
-               if (doesUserWantToSave()) {
-                  // save
-               }
-            }
+            saveIfDirtyAndCloseAll();
             System.exit(0);
 
          })));
@@ -330,12 +311,26 @@ public class MainFrame extends JFrame {
          menuBar.add(Box.createHorizontalGlue());
          menuBar.add(help);
 
-         help.add(createMenuItem("About", "Display About window", 'a', "control COMMA", Icons.ABOUT, e -> {
-            JOptionPane.showMessageDialog(MainFrame.this, "Allows to create/view/modify Led Letter Fonts", "Led Letter Font Creator", JOptionPane.INFORMATION_MESSAGE);
-         }));
+         help.add(createMenuItem("About", "Display About window", 'a', "control COMMA", Icons.ABOUT, e -> JOptionPane.showMessageDialog(MainFrame.this, "Allows to create/view/modify Led Letter Fonts", "Led Letter Font Creator", JOptionPane.INFORMATION_MESSAGE)));
       }
       //endregion
       setJMenuBar(menuBar);
+   }
+
+   private void save() {
+      Preferences preferences = Preferences.userRoot().node(getClass().getName());
+      final JFileChooser jfc = new JFileChooser(preferences.get(LAST_USED_FOLDER, new File(".").getAbsolutePath()));
+      jfc.setFileFilter(LLF_FILE_FILTER);
+      if (JFileChooser.APPROVE_OPTION == jfc.showSaveDialog(MainFrame.this)) {
+         preferences.put(LAST_USED_FOLDER, jfc.getSelectedFile().getParent());
+         try {
+            saveLedLetterFont(jfc.getSelectedFile());
+            statusBar.setDirty(false);
+         } catch (FileNotFoundException e1) {
+            e1.printStackTrace();
+            statusBar.setMessageFor(e1.getMessage(), 10, TimeUnit.SECONDS);
+         }
+      }
    }
 
    private void addLetterTab(int c) {
@@ -360,7 +355,7 @@ public class MainFrame extends JFrame {
    private void saveIfDirtyAndCloseAll() {
       if (isDirty()) {
          if (doesUserWantToSave()) {
-            // save
+            save();
          }
 
       }
@@ -524,7 +519,7 @@ public class MainFrame extends JFrame {
    }
 
    private boolean doesUserWantToSave() {
-      return false;
+      return JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "You have pending changes\nDo you want to save ?", "You have pending changes !", JOptionPane.YES_NO_OPTION);
    }
 
    private boolean isDirty() {
