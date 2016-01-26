@@ -34,8 +34,6 @@ public class UserModelDialog extends JDialog {
 
    private JButton buttonOk = new JButton("OK");
    private JButton buttonClose = new JButton("Close");
-
-
    //endregion
 
    public UserModelDialog(Frame owner) {
@@ -49,6 +47,10 @@ public class UserModelDialog extends JDialog {
                Integer.valueOf(textFieldThickness.getText()));
          dispose();
       });
+
+      textFieldThickness.setEnabled(false);
+      
+      this.getRootPane().setDefaultButton(buttonOk);
 
       initValues(new LedLetterFontDisplayModel());
 

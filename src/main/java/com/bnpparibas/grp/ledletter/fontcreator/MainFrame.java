@@ -4,6 +4,7 @@ import com.bnpparibas.grp.ledletter.fontcreator.icons.Icons;
 import com.bnpparibas.grp.ledletter.fontcreator.status.StatusBar;
 import com.bnpparibas.grp.ledletter.fontcreator.status.StatusBarFactory;
 import com.bnpparibas.grp.ledletter.fontcreator.utils.HexUtils;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jgoodies.looks.Options;
 import org.apache.commons.lang.StringUtils;
@@ -38,7 +39,6 @@ import java.nio.file.Paths;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -65,10 +65,14 @@ public class MainFrame extends JFrame {
    };
    public static final String HEADER = "w:%d,h:%d,b:%d\n";
    private JTabbedPane tabbedPane = new JTabbedPane();
+
    private JMenuItem menuItemSave;
+   private JMenuItem menuItemAddLetter;
 
    //region character list 
-   int[] characters = {32 /* SPACE */,
+   private static final List<Integer> ADDED_LETTER_LIST = Lists.newArrayList();
+   private static final List<Integer> DEFAULT_CHARACTERS = Lists.newArrayList(
+         32 /* SPACE */,
          33 /* ! */,
          34 /* " */,
          35 /* # */,
@@ -162,8 +166,10 @@ public class MainFrame extends JFrame {
          186 /* &ordm; */,
          191 /* &iquest; */,
          209 /* &Ntilde; */,
-         241 /* &ntilde; */};
+         241 /* &ntilde; */);
    //endregion
+
+   private LedLetterFontDisplayModel selectedModel;
 
    private Map<Integer, LedLetterFontDisplay> displaysMap = Maps.newHashMap();
    private final StatusBar statusBar;
@@ -176,7 +182,7 @@ public class MainFrame extends JFrame {
       statusBar = StatusBarFactory.getDefaultStatusBar();
 
       statusBar.addStatusDirtyChangedListener(isDirty -> menuItemSave.setEnabled(isDirty));
-
+      tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
       this.setLayout(new BorderLayout());
       this.add(tabbedPane, BorderLayout.CENTER);
 
@@ -215,19 +221,12 @@ public class MainFrame extends JFrame {
          //region MenuItem New
          file.add(createMenuItem("New", "Creates a new Led Letter Font file.", 'n', "control N", Icons.NEW, (e) -> {
             saveIfDirtyAndCloseAll();
-            LedLetterFontDisplayModel model = askUserModel();
-            if (model != null) {
-               for (int c : characters) {
-
-                  LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(model);
-                  JScrollPane scrollPaneFontDisplay = new JScrollPane();
-                  scrollPaneFontDisplay.getViewport().add(fontDisplay);
-                  model.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
-                  displaysMap.put(c, fontDisplay);
-                  tabbedPane.add("" + (char) c, scrollPaneFontDisplay);
-               }
-
+            selectedModel = askUserModel();
+            if (selectedModel != null) {
+               DEFAULT_CHARACTERS.forEach(this::addLetterTab);
+               menuItemAddLetter.setEnabled(true);
                statusBar.setDirty(true);
+
             }
          }));
 
@@ -245,6 +244,7 @@ public class MainFrame extends JFrame {
 
                try {
                   openLedLetterFont(jfc.getSelectedFile());
+                  menuItemAddLetter.setEnabled(true);
                } catch (IOException e1) {
                   e1.printStackTrace();
                   statusBar.setMessageFor(e1.getMessage(), 10, TimeUnit.SECONDS);
@@ -275,8 +275,7 @@ public class MainFrame extends JFrame {
          //endregion
 
          //region MenuItem CLose All 
-         file.add(createMenuItem("Close All", "Close all opened letters", 'C', "control shift W", Icons.CLOSE, e -> {
-         }));
+         file.add(createMenuItem("Close All", "Close all opened letters", 'C', "control shift W", Icons.CLOSE, e -> closeAll()));
          //endregion
 
          //region MenuItem Exit
@@ -302,8 +301,22 @@ public class MainFrame extends JFrame {
          menuBar.add(edit);
 
          //region MenuItem Add Letter
-         edit.add(createMenuItem("Add Char", "Add a new character to the list", 'A', "control INSERT", Icons.ADD, e -> {
-         }));
+
+         menuItemAddLetter = createMenuItem("Add Letter", "Add a new letter to the list", 'A', "control INSERT", Icons.ADD, e -> {
+            List<Integer> allLetters = Lists.newArrayList();
+            allLetters.addAll(DEFAULT_CHARACTERS);
+            allLetters.addAll(ADDED_LETTER_LIST);
+
+            AddLetterDialog dialog = new AddLetterDialog(MainFrame.this, allLetters);
+            dialog.pack();
+            dialog.setLocationRelativeTo(MainFrame.this);
+            dialog.setVisible(true);
+
+            int selectedLetter = dialog.getSelectedLetter();
+            addLetterTab(selectedLetter, false);
+         });
+         menuItemAddLetter.setEnabled(false);
+         edit.add(menuItemAddLetter);
 
          //endregion
       }
@@ -323,6 +336,25 @@ public class MainFrame extends JFrame {
       }
       //endregion
       setJMenuBar(menuBar);
+   }
+
+   private void addLetterTab(int c) {
+      addLetterTab(c, true);
+   }
+
+   private void addLetterTab(int c, boolean defaultLetter) {
+      LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(c, selectedModel);
+      final TabbedPaneIconUpdater updater = new TabbedPaneIconUpdater(tabbedPane, c, tabbedPane.getTabCount());
+      fontDisplay.addLedLetterChangedListener(updater);
+      JScrollPane scrollPaneFontDisplay = new JScrollPane();
+      scrollPaneFontDisplay.getViewport().add(fontDisplay);
+      selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
+      displaysMap.put(c, fontDisplay);
+      tabbedPane.addTab(String.format("%s (%d)", (char) c, c), scrollPaneFontDisplay);
+      if (!defaultLetter) {
+         ADDED_LETTER_LIST.add(c);
+      }
+      
    }
 
    private void saveIfDirtyAndCloseAll() {
@@ -379,17 +411,20 @@ public class MainFrame extends JFrame {
                      }
                   }
 
-                  LedLetterFontDisplayModel model = new LedLetterFontDisplayModel(new Dimension(nbCol, nbRow));
-                  LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(model);
-                  fontDisplay.addStatusDirtyChangedListener(statusBar); // Make status bar listen to the display dirty status.
+                  selectedModel = new LedLetterFontDisplayModel(new Dimension(nbCol, nbRow));
+                  LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(charValue, selectedModel);
+                  final TabbedPaneIconUpdater updater = new TabbedPaneIconUpdater(tabbedPane, charValue, tabbedPane.getTabCount());
+                  fontDisplay.addLedLetterChangedListener(updater);
+                  fontDisplay.addLedLetterChangedListener(statusBar); // Make status bar listen to the display dirty status.
                   fontDisplay.setValues(v);
 
                   JScrollPane scrollPaneFontDisplay = new JScrollPane();
                   scrollPaneFontDisplay.getViewport().add(fontDisplay);
-                  model.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
+                  selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
 
                   displaysMap.put(charValue, fontDisplay);
-                  tabbedPane.add("" + (char) charValue, scrollPaneFontDisplay);
+                  tabbedPane.addTab(String.format("%s (%d)", (char) charValue, charValue), scrollPaneFontDisplay);
+                  fontDisplay.fireNewlyCreated();
 
                }
             }
@@ -419,7 +454,10 @@ public class MainFrame extends JFrame {
       PrintWriter pw = new PrintWriter(selectedFile);
 
       pw.write(String.format(HEADER, nbCol, nbRow, nbBytes));
-      for (int c : characters) {
+      List<Integer> allLetters = Lists.newArrayList();
+      allLetters.addAll(DEFAULT_CHARACTERS);
+      allLetters.addAll(ADDED_LETTER_LIST);
+      for (int c : allLetters) {
          LedLetterFontDisplay fd = displaysMap.get(c);
 
          final boolean[][] values = fd.getValues();
@@ -436,7 +474,7 @@ public class MainFrame extends JFrame {
                pw.write(bitSetToHexa(bs) + " ");
             }
          }
-         pw.write(String.format("\", %d) /* %s */,\n", c, c));
+         pw.write(String.format("\", %d) /* %s */,\n", c, (char) c));
       }
       pw.close();
    }
@@ -482,6 +520,7 @@ public class MainFrame extends JFrame {
 
    private void closeAll() {
       tabbedPane.removeAll();
+      menuItemAddLetter.setEnabled(false);
    }
 
    private boolean doesUserWantToSave() {

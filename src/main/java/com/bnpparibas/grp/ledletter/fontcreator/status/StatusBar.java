@@ -1,20 +1,25 @@
 package com.bnpparibas.grp.ledletter.fontcreator.status;
 
+import com.bnpparibas.grp.ledletter.fontcreator.LedLetterChangedListener;
+
 import javax.swing.JPanel;
 import javax.swing.event.EventListenerList;
+import java.awt.Image;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author morinb.
  */
-public abstract class StatusBar extends JPanel implements StatusDirtyChangedListener {
+public abstract class StatusBar extends JPanel implements LedLetterChangedListener {
    private static final EventListenerList ell = new EventListenerList();
+
    /**
     * Defines the displayed bar message
     *
     * @param message the message to display.
     */
    public abstract void setMessageFor(String message, long duration, TimeUnit unit);
+
    /**
     * @return
     */
@@ -46,13 +51,15 @@ public abstract class StatusBar extends JPanel implements StatusDirtyChangedList
    public abstract void hideProgress();
 
    public abstract void clearMessage();
-   
+
    public void addStatusDirtyChangedListener(StatusDirtyChangedListener l) {
       ell.add(StatusDirtyChangedListener.class, l);
    }
+
    public void removeStatusDirtyChangedListener(StatusDirtyChangedListener l) {
       ell.remove(StatusDirtyChangedListener.class, l);
    }
+
    public void fireStatusDirtyChanged(boolean dirty) {
       for (StatusDirtyChangedListener l : ell.getListeners(StatusDirtyChangedListener.class)) {
          l.dirtyChanged(dirty);
@@ -60,7 +67,7 @@ public abstract class StatusBar extends JPanel implements StatusDirtyChangedList
    }
 
    @Override
-   public void dirtyChanged(boolean newValue) {
-      setDirty(newValue);
+   public void letterChanged(int c, Image image) {
+      setDirty(true);
    }
 }

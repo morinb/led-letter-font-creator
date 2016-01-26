@@ -1,7 +1,5 @@
 package com.bnpparibas.grp.ledletter.fontcreator;
 
-import com.bnpparibas.grp.ledletter.fontcreator.status.StatusDirtyChangedListener;
-
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
@@ -10,15 +8,19 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.image.BufferedImage;
 
 /**
  * @author morinb.
  */
 public class LedLetterFontDisplay extends JComponent implements LedLetterFontDisplayModelListener {
 
+   private final int c;
    private LedLetterFontDisplayModel model;
    //region shortcut value issued from the model.
    private int thickness;
@@ -35,83 +37,83 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
 
    private static final EventListenerList ell = new EventListenerList();
 
-   public void addStatusDirtyChangedListener(StatusDirtyChangedListener l) {
-      ell.add(StatusDirtyChangedListener.class, l);
-   }
-   public void removeStatusDirtyChangedListener(StatusDirtyChangedListener l) {
-      ell.remove(StatusDirtyChangedListener.class, l);
+   public void addLedLetterChangedListener(LedLetterChangedListener l) {
+      ell.add(LedLetterChangedListener.class, l);
    }
 
-   public void fireStatusDirtyChanged(boolean dirty) {
-      for (StatusDirtyChangedListener l : ell.getListeners(StatusDirtyChangedListener.class)) {
-         l.dirtyChanged(dirty);
+   public void removeLedLetterChangedListener(LedLetterChangedListener l) {
+      ell.remove(LedLetterChangedListener.class, l);
+   }
+
+   public void fireLedLetterChanged(int c, Image image) {
+      for (LedLetterChangedListener l : ell.getListeners(LedLetterChangedListener.class)) {
+         l.letterChanged(c, image);
       }
    }
 
    private Cell[][] cells;
 
-   public LedLetterFontDisplay(LedLetterFontDisplayModel model) {
+   protected Cell[][] getCells() {
+      return cells;
+   }
+
+   public int getTranslateX() {
+      return translateX;
+   }
+
+   public int getTranslateY() {
+      return translateY;
+   }
+
+   private boolean selectCellAtMouse(int computedX, int computedY, boolean select) {
+      for (Cell[] rects : cells) {
+         for (Cell r : rects) {
+            if (r.contains(computedX, computedY)) {
+               r.setSelected(select);
+               LedLetterFontDisplay.this.repaint();
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+
+   public LedLetterFontDisplay(int c, LedLetterFontDisplayModel model) {
       super();
-      this.setBackground(Color.white);
+      this.c = c;
+
+      this.setBackground(transparent);
       this.setForeground(Color.black);
       setModel(model);
-
-      this.addMouseWheelListener(e -> {
-         if (e.isControlDown()) {
-            // -1 for wheel up, 1 for wheel down.
-            // We want zoom in on wheel up, zoom out on wheel down, so we inverse the wheel rotation value. 
-            int newZoom = model.getZoomLevel() - e.getWheelRotation();
-            if (newZoom < 1) {
-               newZoom = 1;
-            }
-            if (newZoom > 16) {
-               newZoom = 16;
-            }
-            model.setZoomLevel(newZoom);
-
-         }
-      });
-
-
-      this.addMouseListener(new MouseListener() {
-         @Override
-         public void mouseClicked(MouseEvent e) {
-            Point p = e.getLocationOnScreen();
-            SwingUtilities.convertPointFromScreen(p, LedLetterFontDisplay.this);
-            final int computedX = ((int) (p.getX() - translateX)) / model.getZoomLevel();
-            final int computedY = ((int) (p.getY() - translateY)) / model.getZoomLevel();
-
-            for (Cell[] rects : cells) {
-               for (Cell r : rects) {
-                  if (r.contains(computedX, computedY)) {
-                     r.setSelected(!r.isSelected());
-                     fireStatusDirtyChanged(true);
-                     LedLetterFontDisplay.this.repaint();
-                     return;
-                  }
-               }
-            }
-         }
-
-         @Override
-         public void mousePressed(MouseEvent e) {
-         }
-
-         @Override
-         public void mouseReleased(MouseEvent e) {
-         }
-
-         @Override
-         public void mouseEntered(MouseEvent e) {
-         }
-
-         @Override
-         public void mouseExited(MouseEvent e) {
-         }
-      });
+      LedLetterFontDisplayMouseListener listener = new LedLetterFontDisplayMouseListener(this);
+      this.addMouseWheelListener(listener);
+      this.addMouseMotionListener(listener);
+      this.addMouseListener(listener);
 
    }
 
+   private Color transparent = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+
+   protected Image buildImage() {
+      BufferedImage image = new BufferedImage(model.getGridDimension().width, model.getGridDimension().height, BufferedImage.TYPE_INT_ARGB);
+      final Graphics2D g2 = image.createGraphics();
+      g2.setPaint(transparent);
+      g2.fillRect(0, 0, image.getWidth() + 1, image.getHeight() + 1);
+      g2.setPaint(Color.black);
+      for (int row = 0; row < verticalCellNumber; row++) {
+         for (int col = 0; col < horizontalCellNumber; col++) {
+            if (cells[row][col].isSelected()) {
+               g2.drawLine(col, row, col, row);
+            }
+         }
+      }
+      g2.dispose();
+      return image;
+   }
+
+   public void fireNewlyCreated() {
+      fireLedLetterChanged(c, buildImage());
+   }
 
    public LedLetterFontDisplayModel getModel() {
       return model;
@@ -163,7 +165,10 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
    @Override
    protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      Graphics2D g2 = (Graphics2D) g;
+      BufferedImage image = new BufferedImage(gridWidth, gridHeight, BufferedImage.TYPE_INT_ARGB);
+
+      Graphics2D g2 = image.createGraphics();
+
       // Fill background
       g2.setPaint(getBackground());
       g2.fillRect(0, 0, getWidth(), getHeight());
@@ -172,7 +177,29 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
       //region Draw grid 
       {
 
+         g2.setPaint(getForeground());
+         g2.setStroke(new BasicStroke(thickness, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
+         for (int row = 0; row < verticalCellNumber; row++) {
+            for (int col = 0; col < horizontalCellNumber; col++) {
+               Cell c = cells[row][col];
+
+               if (c.isSelected()) {
+                  g2.setPaint(getForeground());
+               } else {
+                  g2.setPaint(getBackground());
+               }
+
+               g2.fillRect(c.x + thickness / 2, c.y + thickness / 2, c.width - thickness / 2 + 1, c.height - thickness / 2 + 1);
+
+               g2.setPaint(Color.darkGray);
+               g2.drawRect(c.x + thickness / 2, c.y + thickness / 2, c.width - thickness / 2 + 1, c.height - thickness / 2 + 1);
+            }
+         }
+
+         g2.setPaint(getForeground());
+
+         Graphics2D gg2 = (Graphics2D) g;
          if (gridWidth < getWidth()) {
             translateX = (getWidth() - gridWidth * model.getZoomLevel()) / 2;
 
@@ -181,39 +208,18 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
             translateY = (getHeight() - gridHeight * model.getZoomLevel()) / 2;
          }
          if (translateX != 0 || translateY != 0) {
-            g2.translate(translateX, translateY);
+            gg2.translate(translateX, translateY);
          }
 
-         g2.scale(model.getZoomLevel(), model.getZoomLevel());
+         gg2.scale(model.getZoomLevel(), model.getZoomLevel());
 
-
-         g2.setPaint(getForeground());
-         g2.setStroke(new BasicStroke(thickness, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-
-         for (int row = 0; row < verticalCellNumber; row++) {
-            for (int col = 0; col < horizontalCellNumber; col++) {
-               Cell c = cells[row][col];
-               g2.setPaint(getForeground());
-               g2.drawRect(c.x + thickness / 2, c.y + thickness / 2, c.width - thickness / 2 + 1, c.height - thickness / 2 + 1);
-               if (c.isSelected()) {
-                  g2.setPaint(getForeground());
-               } else {
-                  g2.setPaint(getBackground());
-               }
-
-               g2.fillRect(c.x + thickness / 2, c.y + thickness / 2, c.width - thickness / 2 + 1, c.height - thickness / 2 + 1);
-            }
-         }
-
-         g2.setPaint(getForeground());
-         g2.drawRect(0, 0, gridWidth, gridHeight);
-
-         // debug
+         gg2.drawImage(image, 0, 0, gridWidth + 1, gridHeight + 1, null);
       }
       //endregion
    }
 
    //region LedLetterFontDisplayModelListener implementation
+
 
    @Override
    public void cellDimensionChanged(Dimension oldDimension, Dimension newDimension) {
@@ -265,12 +271,16 @@ public class LedLetterFontDisplay extends JComponent implements LedLetterFontDis
       }
       return res;
    }
-   
+
    public void setValues(boolean[][] values) {
       for (int row = 0; row < verticalCellNumber; row++) {
          for (int col = 0; col < horizontalCellNumber; col++) {
             cells[row][col].setSelected(values[row][col]);
          }
       }
+   }
+
+   public int getC() {
+      return c;
    }
 }

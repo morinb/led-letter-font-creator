@@ -17,7 +17,7 @@ public final class Icons {
    public static final ImageIcon OPEN = new ImageIcon(Icons.class.getResource("/images/open.png"));
    public static final ImageIcon FONTS = new ImageIcon(Icons.class.getResource("/images/fonts.png"));
 
-   private static ImageIcon resize(int width, int height, ImageIcon imageIcon) {
+   public static ImageIcon resize(int width, int height, ImageIcon imageIcon) {
       if (width == imageIcon.getIconWidth() && imageIcon.getIconHeight() == height) {
          return imageIcon;
       }
