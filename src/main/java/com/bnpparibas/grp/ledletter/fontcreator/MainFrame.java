@@ -7,10 +7,16 @@ import com.bnpparibas.grp.ledletter.fontcreator.utils.HexUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import net.infonode.tabbedpanel.TabDropDownListVisiblePolicy;
+import net.infonode.tabbedpanel.TabLayoutPolicy;
+import net.infonode.tabbedpanel.TabbedPanel;
+import net.infonode.tabbedpanel.titledtab.TitledTab;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -19,7 +25,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -68,7 +73,8 @@ public class MainFrame extends JFrame {
       }
    };
    public static final String HEADER = "w:%d,h:%d,b:%d\n";
-   private JTabbedPane tabbedPane = new JTabbedPane();
+   //private JTabbedPane tabbedPane = new JTabbedPane();
+   private TabbedPanel tabbedPane = new TabbedPanel();
 
    private JMenuItem menuItemSave;
    private JMenuItem menuItemAddLetter;
@@ -186,7 +192,13 @@ public class MainFrame extends JFrame {
       statusBar = StatusBarFactory.getDefaultStatusBar();
 
       statusBar.addStatusDirtyChangedListener(isDirty -> menuItemSave.setEnabled(isDirty));
-      tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+      //   tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+
+      tabbedPane.getProperties()
+            .setTabLayoutPolicy(TabLayoutPolicy.SCROLLING)
+            .setTabDropDownListVisiblePolicy(TabDropDownListVisiblePolicy.MORE_THAN_ONE_TAB)
+      ;
+
       this.setLayout(new BorderLayout());
       this.add(tabbedPane, BorderLayout.CENTER);
 
@@ -198,7 +210,7 @@ public class MainFrame extends JFrame {
          @Override
          public void windowClosing(WindowEvent e) {
             Boolean res = saveIfDirtyAndCloseAll();
-            if(res != null) {
+            if (res != null) {
                System.exit(0);
             }
 
@@ -283,7 +295,7 @@ public class MainFrame extends JFrame {
          file.addSeparator();
          file.add(createMenuItem("Exit", "Exits the application", 'x', "control Q", Icons.EXIT, (e -> {
             Boolean res = saveIfDirtyAndCloseAll();
-            if(res != null) {
+            if (res != null) {
                System.exit(0);
             }
 
@@ -323,21 +335,23 @@ public class MainFrame extends JFrame {
 
       //region 
       {
+/*
          final JMenu options = new JMenu("Options");
          options.setMnemonic('O');
          menuBar.add(options);
 
          options.add(createCheckboxMenuItem("Change Tab Layout", "Switch tab layout policy", 'T', "control shift T", Icons.TABS, e -> {
             JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
-            final int layout;
+            final TabLayoutPolicy policy;
             if (item.isSelected()) {
-               layout = JTabbedPane.WRAP_TAB_LAYOUT;
+               policy = TabLayoutPolicy.COMPRESSION;
             } else {
-               layout = JTabbedPane.SCROLL_TAB_LAYOUT;
+               policy = TabLayoutPolicy.SCROLLING;
             }
-            tabbedPane.setTabLayoutPolicy(layout);
+            tabbedPane.getProperties().setTabLayoutPolicy(policy);
             tabbedPane.revalidate();
          }));
+*/
 
       }
 
@@ -384,7 +398,9 @@ public class MainFrame extends JFrame {
       scrollPaneFontDisplay.getViewport().add(fontDisplay);
       selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
       displaysMap.put(c, fontDisplay);
-      tabbedPane.addTab(String.format("%s (%d)", c, (int) c), scrollPaneFontDisplay);
+      TitledTab tt = new TitledTab(String.format("%s (%d)", c, (int) c), new ImageIcon(), scrollPaneFontDisplay, null);
+      tabbedPane.addTab(tt);
+
       if (!defaultLetter) {
          ADDED_LETTER_LIST.add(c);
       }
@@ -462,7 +478,8 @@ public class MainFrame extends JFrame {
                   selectedModel.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
 
                   displaysMap.put(charValue, fontDisplay);
-                  tabbedPane.addTab(String.format("%s (%d)", charValue, (int) charValue), scrollPaneFontDisplay);
+                  TitledTab tt = new TitledTab(String.format("%s (%d)", charValue, (int) charValue), new ImageIcon(), scrollPaneFontDisplay, null);
+                  tabbedPane.addTab(tt);
                   fontDisplay.fireNewlyCreated();
 
                }
@@ -496,12 +513,12 @@ public class MainFrame extends JFrame {
       List<Character> allLetters = Lists.newArrayList();
       allLetters.addAll(DEFAULT_CHARACTERS);
       allLetters.addAll(ADDED_LETTER_LIST);
-      for (int c : allLetters) {
+      for (char c : allLetters) {
          LedLetterFontDisplay fd = displaysMap.get(c);
 
          final boolean[][] values = fd.getValues();
 
-         pw.write(String.format("_%d(\"", c));
+         pw.write(String.format("_%d(\"", (int)c));
          for (int j = 0; j < nbBytes * nbCol; j += nbBytes) {
             for (int b = 0; b < nbBytes; b++) {
                BitSet bs = new BitSet();
@@ -513,7 +530,7 @@ public class MainFrame extends JFrame {
                pw.write(bitSetToHexa(bs) + " ");
             }
          }
-         pw.write(String.format("\", %d) /* %s */,\n", c, (char) c));
+         pw.write(String.format("\", %d) /* %s */,\n", (int)c, c));
       }
       pw.close();
    }
@@ -582,7 +599,7 @@ public class MainFrame extends JFrame {
 
    private void closeAll() {
       while (tabbedPane.getTabCount() > 0) {
-         tabbedPane.removeTabAt(0);
+         tabbedPane.removeTab(tabbedPane.getTabAt(0));
       }
       tabbedPane.revalidate();
       menuItemAddLetter.setEnabled(false);

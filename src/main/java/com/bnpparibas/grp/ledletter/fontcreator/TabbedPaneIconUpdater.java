@@ -1,5 +1,9 @@
 package com.bnpparibas.grp.ledletter.fontcreator;
 
+import net.infonode.tabbedpanel.TabbedPanel;
+import net.infonode.tabbedpanel.titledtab.TitledTab;
+import net.infonode.tabbedpanel.titledtab.TitledTabProperties;
+
 import javax.swing.ImageIcon;
 import javax.swing.JTabbedPane;
 import java.awt.Image;
@@ -9,12 +13,12 @@ import java.awt.Image;
  */
 public class TabbedPaneIconUpdater implements LedLetterChangedListener {
 
-   private JTabbedPane tabbedPane;
+   private TabbedPanel tabbedPane;
    private final int c;
    private final int tabIndex;
 
 
-   public TabbedPaneIconUpdater(JTabbedPane tabbedPane, int c, int tabIndex) {
+   public TabbedPaneIconUpdater(TabbedPanel tabbedPane, int c, int tabIndex) {
       this.tabbedPane = tabbedPane;
       this.c = c;
       this.tabIndex = tabIndex;
@@ -23,8 +27,10 @@ public class TabbedPaneIconUpdater implements LedLetterChangedListener {
    @Override
    public void letterChanged(int c, Image image) {
       if (this.c == c) {
-         this.tabbedPane.setIconAt(tabIndex, new ImageIcon(image));
-         this.tabbedPane.revalidate();
+         ImageIcon icon = new ImageIcon(image);
+         final TitledTab titledTab = (TitledTab) this.tabbedPane.getTabAt(tabIndex);
+         titledTab.setIcon(icon);
+         titledTab.getProperties().getHighlightedProperties().setIcon(icon);
       }
    }
 }
