@@ -2,10 +2,8 @@ package com.bnpparibas.grp.ledletter.fontcreator;
 
 import net.infonode.tabbedpanel.TabbedPanel;
 import net.infonode.tabbedpanel.titledtab.TitledTab;
-import net.infonode.tabbedpanel.titledtab.TitledTabProperties;
 
 import javax.swing.ImageIcon;
-import javax.swing.JTabbedPane;
 import java.awt.Image;
 
 /**

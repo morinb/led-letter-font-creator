@@ -26,7 +26,7 @@ public class Cell {
       //System.out.println(String.format("Is (%d;%d) in [(%d, %d);(%d, %d)]", x, y, this.x, this.x+this.width, this.y, this.y+this.height));
       return getRectangle().contains(x, y);
    }
-   
+
    public Rectangle getRectangle() {
       return new Rectangle(this.x, this.y, width, height);
    }

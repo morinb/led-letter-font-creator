@@ -49,7 +49,7 @@ public class UserModelDialog extends JDialog {
       });
 
       textFieldThickness.setEnabled(false);
-      
+
       this.getRootPane().setDefaultButton(buttonOk);
 
       initValues(new LedLetterFontDisplayModel());
@@ -84,7 +84,7 @@ public class UserModelDialog extends JDialog {
       pb.add(buttonClose, CC.xy(6, 17));
 
       this.add(pb.build(), BorderLayout.CENTER);
-      
+
       this.getRootPane().setDefaultButton(buttonOk);
    }
 

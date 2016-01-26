@@ -36,7 +36,7 @@ public class DefaultStatusBar extends StatusBar {
       checkBoxDirty.setToolTipText("Modified");
       checkBoxDirty.setEnabled(false);
       progressBar = new JProgressBar(SwingConstants.HORIZONTAL, 0, 100);
-      
+
       separatorCheckbox = new JSeparator(SwingConstants.VERTICAL);
       separatorProgressBar = new JSeparator(SwingConstants.VERTICAL);
 
@@ -86,13 +86,12 @@ public class DefaultStatusBar extends StatusBar {
          waitTimer = null;
       }
    }
+
    private void fadeOutTextIn(long duration, TimeUnit unit) {
       resetWaitTimer();
 
       // Starts in duration unit.
-      waitTimer = new Timer((int) unit.toMillis(duration), e -> {
-         fadeOutTimer.start();
-      });
+      waitTimer = new Timer((int) unit.toMillis(duration), e -> fadeOutTimer.start());
       waitTimer.start();
 
 
