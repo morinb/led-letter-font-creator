@@ -5,7 +5,7 @@ import com.bnpparibas.grp.ledletter.fontcreator.status.StatusBar;
 import com.bnpparibas.grp.ledletter.fontcreator.status.StatusBarFactory;
 import com.bnpparibas.grp.ledletter.fontcreator.utils.HexUtils;
 import com.google.common.collect.Maps;
-import com.jtattoo.plaf.acryl.AcrylLookAndFeel;
+import com.jgoodies.looks.Options;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.Box;
@@ -187,21 +187,14 @@ public class MainFrame extends JFrame {
    public static void main(String[] args) {
 
       try {
-         final Properties themeProperties = AcrylLookAndFeel.getThemeProperties("Default");
-         themeProperties.put("logoString", "");
-         themeProperties.put("tooltipCastShadow", "0");
-         themeProperties.put("tooltipBorderSize", "0");
-         themeProperties.put("tooltipShadowSize", "0");
-         themeProperties.put("centerWindowTitle", "on");
-         themeProperties.put("menuOpaque", "on");
-         AcrylLookAndFeel.setCurrentTheme(themeProperties);
-         UIManager.setLookAndFeel("com.jtattoo.plaf.acryl.AcrylLookAndFeel");
+         UIManager.setLookAndFeel(Options.PLASTIC3D_NAME);
       } catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException e) {
          e.printStackTrace();
       }
 
       SwingUtilities.invokeLater(() -> {
          MainFrame mf = new MainFrame();
+         mf.setIconImage(Icons.FONTS.getImage());
          mf.setSize(800, 600);
          mf.setLocationRelativeTo(null);
          mf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -222,20 +215,20 @@ public class MainFrame extends JFrame {
          //region MenuItem New
          file.add(createMenuItem("New", "Creates a new Led Letter Font file.", 'n', "control N", Icons.NEW, (e) -> {
             saveIfDirtyAndCloseAll();
-            for (int c : characters) {
+            LedLetterFontDisplayModel model = askUserModel();
+            if (model != null) {
+               for (int c : characters) {
 
+                  LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(model);
+                  JScrollPane scrollPaneFontDisplay = new JScrollPane();
+                  scrollPaneFontDisplay.getViewport().add(fontDisplay);
+                  model.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
+                  displaysMap.put(c, fontDisplay);
+                  tabbedPane.add("" + (char) c, scrollPaneFontDisplay);
+               }
 
-               LedLetterFontDisplayModel model = askUserModel();
-               LedLetterFontDisplay fontDisplay = new LedLetterFontDisplay(model);
-               JScrollPane scrollPaneFontDisplay = new JScrollPane();
-               scrollPaneFontDisplay.getViewport().add(fontDisplay);
-               model.addLedLetterFontDisplayModelListener(new MyLedLetterFontDisplayModelListener(scrollPaneFontDisplay));
-               displaysMap.put(c, fontDisplay);
-               tabbedPane.add("" + (char) c, scrollPaneFontDisplay);
+               statusBar.setDirty(true);
             }
-
-            statusBar.setDirty(true);
-
          }));
 
          //endregion
@@ -243,7 +236,7 @@ public class MainFrame extends JFrame {
          //region MenuItem Open 
          file.add(createMenuItem("Open", "Opens a Led Letter Font", 'o', "control O", Icons.OPEN, (e) -> {
             saveIfDirtyAndCloseAll();
-            
+
             Preferences preferences = Preferences.userRoot().node(getClass().getName());
             final JFileChooser jfc = new JFileChooser(preferences.get(LAST_USED_FOLDER, new File(".").getAbsolutePath()));
             jfc.setFileFilter(LLF_FILE_FILTER);
@@ -281,6 +274,11 @@ public class MainFrame extends JFrame {
          file.add(menuItemSave);
          //endregion
 
+         //region MenuItem CLose All 
+         file.add(createMenuItem("Close All", "Close all opened letters", 'C', "control shift W", Icons.CLOSE, e -> {
+         }));
+         //endregion
+
          //region MenuItem Exit
          file.addSeparator();
          file.add(createMenuItem("Exit", "Exits the application", 'x', "control Q", Icons.EXIT, (e -> {
@@ -295,6 +293,22 @@ public class MainFrame extends JFrame {
          //endregion
       }
       //endregion
+
+      //region Menu Edit 
+      {
+         JMenu edit = new JMenu("Edit");
+         edit.setMnemonic('E');
+
+         menuBar.add(edit);
+
+         //region MenuItem Add Letter
+         edit.add(createMenuItem("Add Char", "Add a new character to the list", 'A', "control INSERT", Icons.ADD, e -> {
+         }));
+
+         //endregion
+      }
+      //endregion
+
 
       //region Menu Help
       {
@@ -322,9 +336,17 @@ public class MainFrame extends JFrame {
    }
 
    private LedLetterFontDisplayModel askUserModel() {
-      final LedLetterFontDisplayModel model = new LedLetterFontDisplayModel(new Dimension(10, 10), new Dimension(7, 7));
-      this.nbCol = model.getGridDimension().width;
-      this.nbRow = model.getGridDimension().height;
+
+      final UserModelDialog dialog = new UserModelDialog(this);
+      dialog.pack();
+      dialog.setLocationRelativeTo(this);
+      dialog.setVisible(true);
+
+      final LedLetterFontDisplayModel model = dialog.getModel();
+      if (model != null) {
+         this.nbCol = model.getGridDimension().width;
+         this.nbRow = model.getGridDimension().height;
+      }
       return model;
    }
 
