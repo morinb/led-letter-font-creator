@@ -65,10 +65,10 @@ public class UserModelDialog extends JDialog {
       pb.border(Borders.DIALOG);
 
       pb.addSeparator("Grid dimensions", CC.xyw(1, 1, 6));
-      pb.addLabel("Row number", CC.xy(2, 3));
-      pb.add(textFieldRowNumber, CC.xyw(4, 3, 3));
-      pb.addLabel("Col number", CC.xy(2, 5));
-      pb.add(textFieldColumnNumber, CC.xyw(4, 5, 3));
+      pb.addLabel("Col number", CC.xy(2, 3));
+      pb.add(textFieldColumnNumber, CC.xyw(4, 3, 3));
+      pb.addLabel("Row number", CC.xy(2, 5));
+      pb.add(textFieldRowNumber, CC.xyw(4, 5, 3));
 
       pb.addSeparator("Cell dimensions", CC.xyw(1, 7, 6));
       pb.addLabel("Cell width", CC.xy(2, 9));
