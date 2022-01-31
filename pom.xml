@@ -149,11 +149,11 @@
             <version>${jgoodies-forms.version}</version>
         </dependency>
 
-        <dependency>
+      <!--  <dependency>
             <groupId>net.infonode</groupId>
             <artifactId>idw-gpl</artifactId>
             <version>${idw-gpl.version}</version>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>junit</groupId>
